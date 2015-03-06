@@ -1,0 +1,35 @@
+#!/usr/bin/env ruby
+
+require 'csv'
+require 'json'
+require 'thor'
+require 'digest/sha1'
+
+class Share < Thor
+
+  desc "get FILE", "Post file to S3"
+  def get(file)
+    sha = Digest::SHA1.hexdigest(file)
+    command = "aws s3 cp s3://xnh/public/#{sha}/#{file} #{file} && echo '#{file}'"
+    exec(command)
+  end
+
+  desc "post FILE", "Post file to S3"
+  def post(file = nil)
+    unless File.exists? file
+      puts "Error! Can't find \"#{file}\""
+    end
+    location = "#{Dir.pwd}/#{file}"
+    sha = Digest::SHA1.hexdigest(file)
+    command = "aws s3 cp #{location} s3://xnh/public/#{sha}/#{file} --acl public-read && echo 'https://s3.amazonaws.com/xnh/public/#{sha}/#{file}' | pbcopy && echo 'https://s3.amazonaws.com/xnh/public/#{sha}/#{file}'"
+    exec(command)
+  end
+  default_task :post
+
+end
+
+
+  # Start Thor as usual
+Share.start
+
+
